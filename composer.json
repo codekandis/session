@@ -1,0 +1,54 @@
+{
+	"name": "codekandis/session",
+	"description": "This library provides interfaces and classes for a proper session handling.",
+	"keywords": [
+		"php",
+		"library",
+		"session",
+		"handling"
+	],
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Christian Ramelow",
+			"email": "info@codekandis.net",
+			"homepage": "https://codekandis.net",
+			"role": "Developer"
+		}
+	],
+	"support": {
+		"email": "info@codekandis.net",
+		"issues": "https://github.com/codekandis/session/issues",
+		"docs": "https://github.com/codekandis/session/blob/master/README.md",
+		"source": "https://github.com/codekandis/session/tree/master"
+	},
+	"require": {
+		"php": "^7.4"
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-master",
+		"sensiolabs/security-checker": "^6",
+		"phpunit/phpunit": "^8"
+	},
+	"autoload": {
+		"psr-4": {
+			"CodeKandis\\Session\\": [
+				"src/"
+			]
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"CodeKandis\\Session\\Tests\\": [
+				"tests/"
+			]
+		}
+	},
+	"scripts": {
+		"post-update-cmd": [
+			"[ ${COMPOSER_DEV_MODE} -eq 0 ] || vendor/bin/security-checker security:check composer.lock"
+		]
+	}
+}

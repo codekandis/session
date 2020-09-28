@@ -1,0 +1,23 @@
+<phpunit
+	bootstrap="../tests/bootstrap.php"
+	verbose="true"
+	beStrictAboutOutputDuringTests="true"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	cacheResult="false">
+	<testsuites>
+		<testsuite name="codekandis/session">
+			<directory suffix="Test.php">../tests/UnitTests</directory>
+		</testsuite>
+	</testsuites>
+	<filter>
+		<whitelist processUncoveredFilesFromWhitelist="true">
+			<directory suffix=".php">../src</directory>
+		</whitelist>
+	</filter>
+	<logging>
+		<log type="coverage-text" target="php://stdout" showUncoveredFiles="true" showOnlySummary="false"/>
+	</logging>
+</phpunit>
