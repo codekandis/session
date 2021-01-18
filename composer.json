@@ -7,7 +7,7 @@
 		"session",
 		"handling"
 	],
-	"minimum-stability": "dev",
+	"minimum-stability": "stable",
 	"prefer-stable": true,
 	"license": "MIT",
 	"authors": [
@@ -29,8 +29,7 @@
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-master",
-		"sensiolabs/security-checker": "^6",
-		"phpunit/phpunit": "^8"
+		"codekandis/phpunit": "^3"
 	},
 	"autoload": {
 		"psr-4": {
@@ -45,10 +44,5 @@
 				"tests/"
 			]
 		}
-	},
-	"scripts": {
-		"post-update-cmd": [
-			"[ ${COMPOSER_DEV_MODE} -eq 0 ] || vendor/bin/security-checker security:check composer.lock"
-		]
 	}
 }
