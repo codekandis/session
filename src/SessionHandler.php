@@ -25,6 +25,12 @@ class SessionHandler implements SessionHandlerInterface
 	protected const ERROR_SESSION_HAS_NOT_BEEN_STARTED = 'The session has not been started.';
 
 	/**
+	 * Represents the error message if the session has not been started.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_HAS_BEEN_STARTED = 'The session has already been started.';
+
+	/**
 	 * Represents the error message if a session key does not exist.
 	 * @var string
 	 */
@@ -58,6 +64,11 @@ class SessionHandler implements SessionHandlerInterface
 	 */
 	public function start(): bool
 	{
+		if ( SessionStatus::ACTIVE === $this->getStatus() )
+		{
+			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
+		}
+
 		return session_start( $this->options );
 	}
 
@@ -123,7 +134,7 @@ class SessionHandler implements SessionHandlerInterface
 	 */
 	public function has( string $key ): bool
 	{
-		if ( SessionStatus::ACTIVE !== $this->getStatus() )
+		if ( SessionStatus::ACTIVE === $this->getStatus() )
 		{
 			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
 		}
