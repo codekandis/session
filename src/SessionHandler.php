@@ -5,6 +5,7 @@ use function array_key_exists;
 use function session_destroy;
 use function session_name;
 use function session_regenerate_id;
+use function session_save_path;
 use function session_start;
 use function session_status;
 use function session_unset;
@@ -43,12 +44,46 @@ class SessionHandler implements SessionHandlerInterface
 	private array $options;
 
 	/**
+	 * Stores the path where the session will be stored.
+	 * @var ?string
+	 */
+	private string $savePath;
+
+	/**
 	 * Constructor method.
 	 * @param array $options The session configuration directives.
+	 * @param ?string $savePath The path where the session data will be saved.
 	 */
-	public function __construct( array $options = [] )
+	public function __construct( array $options = [], ?string $savePath = null )
 	{
-		$this->options = $options;
+		$this->options  = $options;
+		$this->savePath = $savePath;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getSavePath(): ?string
+	{
+		if ( SessionStatus::ACTIVE === $this->getStatus() )
+		{
+			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
+		}
+
+		return session_save_path();
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function setSavePath( ?string $savePath ): void
+	{
+		if ( SessionStatus::ACTIVE === $this->getStatus() )
+		{
+			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
+		}
+
+		$this->savePath = $savePath;
 	}
 
 	/**
@@ -68,6 +103,8 @@ class SessionHandler implements SessionHandlerInterface
 		{
 			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
 		}
+
+		session_save_path( $this->savePath );
 
 		return session_start( $this->options );
 	}

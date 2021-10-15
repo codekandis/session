@@ -9,6 +9,20 @@ namespace CodeKandis\Session;
 interface SessionHandlerInterface
 {
 	/**
+	 * Gets the path where the session data will be stored.
+	 * @return string The path where the session data will be stored.
+	 * @throws SessionStartedException The session has already been started.
+	 */
+	public function getSavePath(): ?string;
+
+	/**
+	 * Sets the path where the session data will be stored.
+	 * @param ?string $savePath The path where the session data will be stored.
+	 * @throws SessionStartedException The session has already been started.
+	 */
+	public function setSavePath( ?string $savePath ): void;
+
+	/**
 	 * Gets the status of the current session.
 	 * @return int WorkANicer_Client_SessionStatus::DISABLED if sessions are disabled, WorkANicer_Client_SessionStatus::NONE if sessions are enabled, but none exists, WorkANicer_Client_SessionStatus::ACTIVE if sessions are enabled and one exists.
 	 */
