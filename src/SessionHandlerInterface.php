@@ -9,7 +9,21 @@ namespace CodeKandis\Session;
 interface SessionHandlerInterface
 {
 	/**
-	 * Gets the state of the current session.
+	 * Gets the path where the session data will be stored.
+	 * @return string The path where the session data will be stored.
+	 * @throws SessionStartedException The session has already been started.
+	 */
+	public function getSavePath(): ?string;
+
+	/**
+	 * Sets the path where the session data will be stored.
+	 * @param ?string $savePath The path where the session data will be stored.
+	 * @throws SessionStartedException The session has already been started.
+	 */
+	public function setSavePath( ?string $savePath ): void;
+
+	/**
+	 * Gets the status of the current session.
 	 * @return int WorkANicer_Client_SessionStatus::DISABLED if sessions are disabled, WorkANicer_Client_SessionStatus::NONE if sessions are enabled, but none exists, WorkANicer_Client_SessionStatus::ACTIVE if sessions are enabled and one exists.
 	 */
 	public function getStatus(): int;
@@ -17,6 +31,7 @@ interface SessionHandlerInterface
 	/**
 	 * Start a new or resumes an existing session.
 	 * @return bool True if the session has been started or resumed successfully, false otherwise.
+	 * @throws SessionStartedException The session has already been started.
 	 */
 	public function start(): bool;
 
