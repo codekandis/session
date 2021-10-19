@@ -4,6 +4,7 @@ namespace CodeKandis\Session;
 use CodeKandis\Session\Configurations\SessionsConfigurationInterface;
 use function array_key_exists;
 use function is_dir;
+use function is_writable;
 use function session_destroy;
 use function session_name;
 use function session_regenerate_id;
@@ -36,19 +37,55 @@ class SessionHandler implements SessionHandlerInterface
 	 * Represents the error message if the session has not been started.
 	 * @var string
 	 */
-	protected const ERROR_SESSION_HAS_NOT_BEEN_STARTED = 'The session has not been started.';
+	protected const ERROR_SESSION_NOT_STARTED = 'The session has not been started.';
 
 	/**
 	 * Represents the error message if the session has not been started.
 	 * @var string
 	 */
-	protected const ERROR_SESSION_HAS_BEEN_STARTED = 'The session has already been started.';
+	protected const ERROR_SESSION_STARTED = 'The session has already been started.';
 
 	/**
 	 * Represents the error message if a session key does not exist.
 	 * @var string
 	 */
-	protected const ERROR_SESSION_KEY_DOES_NOT_EXIST = 'The session key \'%s\' does not exist.';
+	protected const ERROR_SESSION_KEY_NOT_FOUND = 'The session key \'%s\' does not exist.';
+
+	/**
+	 * Represents the error message if the session has been failed to start.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_START_FAILED = 'The session has been failed to start.';
+
+	/**
+	 * Represents the error message if the session has been failed to unset.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_UNSET_FAILED = 'The session has been failed to unset.';
+
+	/**
+	 * Represents the error message if the session has been failed to destroy.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_DESTROY_FAILED = 'The session has been failed to destroy.';
+
+	/**
+	 * Represents the error message if the session has been failed to write-close.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_WRITE_CLOSE_FAILED = 'The session has been failed to write-close.';
+
+	/**
+	 * Represents the error message if the session has been failed to regenerate its ID.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_REGENERATE_ID_FAILED = 'The session has been failed to regenerate its ID.';
+
+	/**
+	 * Represents the error message if the session has been failed to set its name.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_SET_NAME_FAILED = 'The session has been failed to set its name.';
 
 	/**
 	 * Stores the sessions configuration.
@@ -100,7 +137,7 @@ class SessionHandler implements SessionHandlerInterface
 
 		if ( SessionStatus::ACTIVE === $this->getStatus() )
 		{
-			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
+			throw new SessionStartedException( static::ERROR_SESSION_STARTED );
 		}
 	}
 
@@ -115,31 +152,39 @@ class SessionHandler implements SessionHandlerInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function start(): bool
+	public function start(): void
 	{
 		if ( SessionStatus::ACTIVE === $this->getStatus() )
 		{
-			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
+			throw new SessionStartedException( static::ERROR_SESSION_STARTED );
 		}
 
 		$this->setSavePath();
 
-		return session_start( $this->configuration->getSavePath() );
+		if ( false === session_start() )
+		{
+			throw new SessionStartFailedException( static::ERROR_SESSION_START_FAILED );
+		}
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function destroy(): bool
+	public function destroy(): void
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
-		session_unset();
-
-		return session_destroy();
+		if ( false === session_unset() )
+		{
+			throw new SessionUnsetFailedException( static::ERROR_SESSION_UNSET_FAILED );
+		}
+		if ( false === session_destroy() )
+		{
+			throw new SessionDestroyFailedException( static::ERROR_SESSION_DESTROY_FAILED );
+		}
 	}
 
 	/**
@@ -149,23 +194,29 @@ class SessionHandler implements SessionHandlerInterface
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
-		session_write_close();
+		if ( false === session_write_close() )
+		{
+			throw new SessionWriteCloseFailedException( static::ERROR_SESSION_WRITE_CLOSE_FAILED );
+		}
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function regenerateId( bool $deleteOldSession = false ): bool
+	public function regenerateId( bool $deleteOldSession = false ): void
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
-		return session_regenerate_id( $deleteOldSession );
+		if ( false === session_regenerate_id( $deleteOldSession ) )
+		{
+			throw new SessionRegenerateIdFailedException( static::ERROR_SESSION_REGENERATE_ID_FAILED );
+		}
 	}
 
 	/**
@@ -181,7 +232,10 @@ class SessionHandler implements SessionHandlerInterface
 	 */
 	public function setName( string $name ): void
 	{
-		session_name( $name );
+		if ( false === session_name( $name ) )
+		{
+			throw new SessionSetNameFailedException( static::ERROR_SESSION_SET_NAME_FAILED );
+		}
 	}
 
 	/**
@@ -191,7 +245,7 @@ class SessionHandler implements SessionHandlerInterface
 	{
 		if ( SessionStatus::ACTIVE === $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
 		return array_key_exists( $key, $_SESSION );
@@ -204,14 +258,14 @@ class SessionHandler implements SessionHandlerInterface
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
 		if ( false === $this->has( $key ) )
 		{
 			throw new SessionKeyNotFoundException(
 				sprintf(
-					static::ERROR_SESSION_KEY_DOES_NOT_EXIST,
+					static::ERROR_SESSION_KEY_NOT_FOUND,
 					$key
 				)
 			);
@@ -227,7 +281,7 @@ class SessionHandler implements SessionHandlerInterface
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
 		if ( false === $this->has( $key ) )
@@ -245,7 +299,7 @@ class SessionHandler implements SessionHandlerInterface
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
 		$_SESSION[ $key ] = $value;
@@ -258,14 +312,14 @@ class SessionHandler implements SessionHandlerInterface
 	{
 		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
-			throw new SessionNotStartedException( static::ERROR_SESSION_HAS_NOT_BEEN_STARTED );
+			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
 
 		if ( false === $this->has( $key ) )
 		{
 			throw new SessionKeyNotFoundException(
 				sprintf(
-					static::ERROR_SESSION_KEY_DOES_NOT_EXIST,
+					static::ERROR_SESSION_KEY_NOT_FOUND,
 					$key
 				)
 			);

@@ -16,19 +16,18 @@ interface SessionHandlerInterface
 
 	/**
 	 * Start a new or resumes an existing session.
-	 * @return bool True if the session has been started or resumed successfully, false otherwise.
 	 * @throws SessionStartedException The session has already been started.
 	 * @throws SessionDirectoryNotFoundException The session directory does not exist.
 	 * @throws SessionDirectoryNotWritableException The session directory is not writable.
+	 * @throws SessionStartFailedException The session has been failed to start.
 	 */
-	public function start(): bool;
+	public function start(): void;
 
 	/**
 	 * Destroys all data registered to a session.
-	 * @return bool True if the registered data has been destroyed successfully, false otherwise.
 	 * @throws SessionNotStartedException The session has not been started.
 	 */
-	public function destroy(): bool;
+	public function destroy(): void;
 
 	/**
 	 * Writes and closes a session.
@@ -39,10 +38,9 @@ interface SessionHandlerInterface
 	/**
 	 * Replaces the old session ID with a new one.
 	 * @param bool $deleteOldSession [false] Specifies if the old session should be deleted.
-	 * @return bool True if the session ID has been replaced successfully, false otherwise.
 	 * @throws SessionNotStartedException The session has not been started.
 	 */
-	public function regenerateId( bool $deleteOldSession = false ): bool;
+	public function regenerateId( bool $deleteOldSession = false ): void;
 
 	/**
 	 * Gets the name of the session.
