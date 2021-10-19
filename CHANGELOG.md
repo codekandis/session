@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [keep a changelog][xtlink-keep-a-changelog]
 and this project adheres to [Semantic Versioning 2.0.0][xtlink-semantic-versioning].
 
+## [0.4.0] - 2021-10-19
+
+### Added
+
+* sessions configuration
+* advanced error handling
+
+### Changed
+
+* composer package dependencies
+    * added
+        * `codekandis/configurations`
+* replaced initial session handler values with sessions configuration
+
+[0.4.0]: https://github.com/codekandis/session/compare/0.3.0..0.4.0
+
+---
 ## [0.3.0] - 2021-10-15
 
 ### Added
