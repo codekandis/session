@@ -1,11 +1,12 @@
 <?php declare( strict_types = 1 );
 namespace CodeKandis\Session;
 
+use CodeKandis\Session\Configurations\SessionsConfigurationInterface;
 use function array_key_exists;
+use function is_dir;
 use function session_destroy;
 use function session_name;
 use function session_regenerate_id;
-use function session_save_path;
 use function session_start;
 use function session_status;
 use function session_unset;
@@ -19,6 +20,18 @@ use function sprintf;
  */
 class SessionHandler implements SessionHandlerInterface
 {
+	/**
+	 * Represents the error message if the session directory does not exist.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_DIRECTORY_NOT_FOUND = 'The session directory \'%s\' does not exist.';
+
+	/**
+	 * Represents the error message if the session directory is not writable.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_DIRECTORY_NOT_WRITABLE = 'The session directory \'%s\' is not writable.';
+
 	/**
 	 * Represents the error message if the session has not been started.
 	 * @var string
@@ -38,52 +51,57 @@ class SessionHandler implements SessionHandlerInterface
 	protected const ERROR_SESSION_KEY_DOES_NOT_EXIST = 'The session key \'%s\' does not exist.';
 
 	/**
-	 * Stores the session configuration directives.
-	 * @var array
+	 * Stores the sessions configuration.
+	 * @var SessionsConfigurationInterface
 	 */
-	private array $options;
-
-	/**
-	 * Stores the path where the session will be stored.
-	 * @var ?string
-	 */
-	private string $savePath;
+	private SessionsConfigurationInterface $configuration;
 
 	/**
 	 * Constructor method.
-	 * @param array $options The session configuration directives.
-	 * @param ?string $savePath The path where the session data will be saved.
+	 * @param SessionsConfigurationInterface $configuration The sessions configuration.
 	 */
-	public function __construct( array $options = [], ?string $savePath = null )
+	public function __construct( SessionsConfigurationInterface $configuration )
 	{
-		$this->options  = $options;
-		$this->savePath = $savePath;
+		$this->configuration = $configuration;
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Sets the path where the session data will be stored.
+	 * @throws SessionStartedException The session has already been started.
+	 * @throws SessionDirectoryNotFoundException The session directory does not exist.
+	 * @throws SessionDirectoryNotWritableException The session directory is not writable.
 	 */
-	public function getSavePath(): ?string
+	private function setSavePath(): void
 	{
+		if ( null === $this->configuration->getSavePath() )
+		{
+			return;
+		}
+
+		if ( false === is_dir( $this->configuration->getSavePath() ) )
+		{
+			throw new SessionDirectoryNotFoundException(
+				sprintf(
+					static::ERROR_SESSION_DIRECTORY_NOT_FOUND,
+					$this->configuration->getSavePath()
+				)
+			);
+		}
+
+		if ( false === is_writable( $this->configuration->getSavePath() ) )
+		{
+			throw new SessionDirectoryNotWritableException(
+				sprintf(
+					static::ERROR_SESSION_DIRECTORY_NOT_WRITABLE,
+					$this->configuration->getSavePath()
+				)
+			);
+		}
+
 		if ( SessionStatus::ACTIVE === $this->getStatus() )
 		{
 			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
 		}
-
-		return session_save_path();
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setSavePath( ?string $savePath ): void
-	{
-		if ( SessionStatus::ACTIVE === $this->getStatus() )
-		{
-			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
-		}
-
-		$this->savePath = $savePath;
 	}
 
 	/**
@@ -104,9 +122,9 @@ class SessionHandler implements SessionHandlerInterface
 			throw new SessionStartedException( static::ERROR_SESSION_HAS_BEEN_STARTED );
 		}
 
-		session_save_path( $this->savePath );
+		$this->setSavePath();
 
-		return session_start( $this->options );
+		return session_start( $this->configuration->getSavePath() );
 	}
 
 	/**
