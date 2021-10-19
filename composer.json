@@ -1,11 +1,13 @@
 {
 	"name": "codekandis/session",
-	"description": "This library provides interfaces and classes for a proper session handling.",
+	"description": "`codekandis/configurations` is a library providing session handling interfaces and classes.",
 	"keywords": [
 		"php",
 		"library",
 		"session",
-		"handling"
+		"handling",
+		"interfaces",
+		"classes"
 	],
 	"minimum-stability": "stable",
 	"prefer-stable": true,
@@ -25,7 +27,8 @@
 		"source": "https://github.com/codekandis/session/tree/master"
 	},
 	"require": {
-		"php": "^7.4"
+		"php": "^7.4",
+		"codekandis/configurations": "^0"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-master",
