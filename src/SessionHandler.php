@@ -8,6 +8,7 @@ use function is_writable;
 use function session_destroy;
 use function session_name;
 use function session_regenerate_id;
+use function session_save_path;
 use function session_start;
 use function session_status;
 use function session_unset;
@@ -139,6 +140,11 @@ class SessionHandler implements SessionHandlerInterface
 		{
 			throw new SessionStartedException( static::ERROR_SESSION_STARTED );
 		}
+
+		session_save_path(
+			$this->configuration->getSavePath()
+		);
+		ini_set( 'session.gc_probability', '1' );
 	}
 
 	/**
@@ -243,7 +249,7 @@ class SessionHandler implements SessionHandlerInterface
 	 */
 	public function has( string $key ): bool
 	{
-		if ( SessionStatus::ACTIVE === $this->getStatus() )
+		if ( SessionStatus::ACTIVE !== $this->getStatus() )
 		{
 			throw new SessionNotStartedException( static::ERROR_SESSION_NOT_STARTED );
 		}
