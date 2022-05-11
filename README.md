@@ -5,7 +5,7 @@
 [![Minimum PHP Version][xtlink-php-version-badge]][xtlink-php-net]
 ![Code Coverage][xtlink-code-coverage-badge]
 
-`codekandis/configurations` is a library providing session handling interfaces and classes.
+`codekandis/session` is a library providing session handling interfaces and classes.
 
 ## Index
 
