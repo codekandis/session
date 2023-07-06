@@ -2,7 +2,11 @@
 namespace CodeKandis\Session;
 
 use CodeKandis\Session\Configurations\SessionsConfigurationInterface;
+use ReflectionClass;
 use function array_key_exists;
+use function array_values;
+use function in_array;
+use function ini_set;
 use function is_dir;
 use function is_writable;
 use function session_destroy;
@@ -22,6 +26,12 @@ use function sprintf;
  */
 class SessionHandler implements SessionHandlerInterface
 {
+	/**
+	 * Represents the error message if a session option is invalid.
+	 * @var string
+	 */
+	protected const ERROR_SESSION_OPTION_IS_INVALID = 'The session option \'%s\' is invalid.';
+
 	/**
 	 * Represents the error message if the session directory does not exist.
 	 * @var string
@@ -101,6 +111,38 @@ class SessionHandler implements SessionHandlerInterface
 	public function __construct( SessionsConfigurationInterface $configuration )
 	{
 		$this->configuration = $configuration;
+
+		$this->configure();
+	}
+
+	/**
+	 * Configures the session.
+	 * @throws SessionOptionInvalidException A session option is invalid.
+	 */
+	private function configure(): void
+	{
+		$reflectedSessionOptionsClass = new ReflectionClass( SessionOptions::class );
+		$validSessionOptions          = array_values(
+			$reflectedSessionOptionsClass->getConstants()
+		);
+
+		foreach ( $this->configuration->getOptions() as $sessionOptionName => $sessionOptionValue )
+		{
+			if ( false === in_array( $sessionOptionName, $validSessionOptions ) )
+			{
+				throw new SessionOptionInvalidException(
+					sprintf(
+						static::ERROR_SESSION_OPTION_IS_INVALID,
+						$sessionOptionName
+					)
+				);
+			}
+		}
+
+		foreach ( $this->configuration->getOptions() as $sessionOptionName => $sessionOptionValue )
+		{
+			ini_set( $sessionOptionName, $sessionOptionValue );
+		}
 	}
 
 	/**
